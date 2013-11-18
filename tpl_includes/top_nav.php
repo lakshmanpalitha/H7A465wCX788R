@@ -20,8 +20,17 @@
             <li><a href="contact.php">Contact</a></li>
             <li><a href="register.php">Register</a></li>
             <li><a href="login.php">Login</a></li>
+            <li class="dropdown">
+            <a class="dropdown-toggle" data-toggle="dropdown" href="manage.php">Manage Site <b class="caret"></b></a>
+                <ul class="dropdown-menu">
+                    <li><a href="upload_book.php">Upload Book</a></li>
+                    <li><a href="">Manage Book</a></li>
+                    <li><a href="">Manage User</a></li>
+                    <li><a href="">Manage Borrowings</a></li>
+                  </ul>
+              </li>
             <!--<li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Portfolio <b class="caret"></b></a>
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">Portfolio</a>
               <ul class="dropdown-menu">
                 <li><a href="portfolio-1-col.html">1 Column Portfolio</a></li>
                 <li><a href="portfolio-2-col.html">2 Column Portfolio</a></li>
