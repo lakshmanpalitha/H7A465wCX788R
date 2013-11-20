@@ -24,9 +24,8 @@
             <a class="dropdown-toggle" data-toggle="dropdown" href="manage.php">Manage Site <b class="caret"></b></a>
                 <ul class="dropdown-menu">
                     <li><a href="upload_book.php">Upload Book</a></li>
-                    <li><a href="">Manage Book</a></li>
-                    <li><a href="">Manage User</a></li>
-                    <li><a href="">Manage Borrowings</a></li>
+                    <li><a href="manage_books.php">Manage Book</a></li>
+                    <li><a href="manage_user.php">Manage User</a></li>
                   </ul>
               </li>
             <!--<li class="dropdown">
