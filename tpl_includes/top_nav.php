@@ -28,6 +28,7 @@
                     <li><a href="manage_user.php">Manage User</a></li>
                   </ul>
               </li>
+              <li><a href="my_account.php">My Account</a></li>
             <!--<li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">Portfolio</a>
               <ul class="dropdown-menu">
