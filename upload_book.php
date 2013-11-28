@@ -50,8 +50,10 @@ if ($read->get("upload_book", "POST")) {
                     ?>
 
                     <div class="alert alert-success" style="display:<?php echo $success ?>">
+                        <?php echo $errors ?>
                     </div>
                     <div class="alert alert-danger" style="display:<?php echo $failed ?>">
+                        <?php echo $errors ?>
                     </div>
 
                     <form class="form-horizontal" role="form" method="POST" action="upload_book.php" enctype='multipart/form-data'>
@@ -59,6 +61,12 @@ if ($read->get("upload_book", "POST")) {
                             <label for="book_name" class="col-sm-3 control-label">Name of the book/publication</label>
                             <div class="col-sm-9">
                                 <input type="text" class="form-control"  value="<?php echo ($fromValue ? $fromValue['book_name_or_publication'] : "") ?>" name="fields_req[book_name_or_publication]" id="book_name" placeholder="Name of the book/publication">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="book_name" class="col-sm-3 control-label">ISBN </label>
+                            <div class="col-sm-9">
+                                <input type="text" class="form-control"  value="<?php echo ($fromValue ? $fromValue['isbn'] : "") ?>" name="fields_req[isbn]" id="isbn" placeholder="isbn">
                             </div>
                         </div>
 
@@ -106,8 +114,10 @@ if ($read->get("upload_book", "POST")) {
 
                         <div class="form-group">
                             <div class="col-sm-offset-3 col-sm-9">
-                                <button type="submit" name="upload_book" value="TRUE" class="btn btn-primary btn-lg">Upload Book</button>
+                                <input type="hidden" name="fields_req[upload_date]" value="<?php echo date('Y-m-d H:i:s') ?>" />
                                 <input type="hidden" name="check_book_submit" value="TRUE" />
+                                <button type="submit" name="upload_book" value="TRUE" class="btn btn-primary btn-lg">Upload Book</button>
+
                             </div>
                         </div>
                     </form>
