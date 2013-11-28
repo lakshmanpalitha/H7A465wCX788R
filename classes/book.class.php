@@ -27,23 +27,43 @@ class book {
     }
 
     function saveBook($bookInfo) {
+        if (!$_FILES["zip_file"]["name"]) {
+            $this->er->createerror("Please upload a valid zip file.", 1);
+            return false;
+        }
+        $type = $_FILES["zip_file"]["type"];
+        $accepted_types = array('application/zip', 'application/x-zip-compressed', 'multipart/x-zip', 'application/x-compressed');
+        $okay = false;
+        foreach ($accepted_types as $mime_type) {
+            if ($mime_type == $type) {
+                $okay = true;
+                break;
+            }
+        }
+        if (!$okay) {
+
+            $this->er->createerror("System supported only for zip file. Not supported for rar or any oter file format!", 1);
+            return false;
+        }
         if (!$bookInfo) {
             return false;
         }
-        if (!$qry = $this->qu->insertQuery($bookInfo, "book_store")) {//create insert qry for data to the 'book_store' table
-            $this->er->createerror("Qry create failed", 1);
-            return false;
-        }
+
+        $insertBookQry = "INSERT INTO book_store(isbn,book_name_or_publication,author_or_translater,original_publisher,digital_talking_book_publisher,book_description,upload_date)
+            VALUES('" . mysql_real_escape_string($bookInfo['isbn']) . "','" . mysql_real_escape_string($bookInfo['book_name_or_publication']) . "','" . mysql_real_escape_string($bookInfo['author_or_translater']) . "',
+                '" . mysql_real_escape_string($bookInfo['original_publisher']) . "','" . mysql_real_escape_string($bookInfo['digital_talking_book_publisher']) . "','" . mysql_real_escape_string($bookInfo['book_description']) . "','" . $bookInfo['upload_date'] . "')";
 
 
-        if (!$this->con->execute($qry)) {//run the qry and insert data to 'user' table
+        if (!$this->con->execute($insertBookQry)) {//run the qry and insert data to 'user' table
             return false;
         }
         $qry = "SELECT book_id FROM book_store ORDER BY book_id DESC";
         $res = $this->con->queryUniqueValue($qry);
         $bookId = $res;
         if ($bookId) {
-            $this->mainBookUpload($bookId, $bookInfo['book_name_or_publication']);
+            if (!$this->mainBookUpload($bookId)) {
+                return false;
+            }
         }
 //
 //        //inform to the customer registration success by email
@@ -57,23 +77,28 @@ class book {
         return true;
     }
 
-    function mainBookUpload($bookId, $bookName) {
+    function mainBookUpload($bookId) {
 
         /*         * * upload book * * */
-        $bookname = $this->bookUpload($bookName);
-        var_dump($bookname);
-        if ($bookname) {
-            $this->con->execute('UPDATE book_store SET zip_upload_path="' . $bookname . '" WHERE book_id="' . $bookId . '"');
-            $bookUpload = true;
+        $bookname = $this->bookUpload();
+        if (!$bookname) {
+            $this->er->createerror("Book upload failed!", 1);
+            return false;
         }
+        $this->con->execute('UPDATE book_store SET zip_upload_path="' . $bookname . '" WHERE book_id="' . $bookId . '"');
+        $bookUpload = true;
 
         /*         * * cover image upload * * */
+        if ($_FILES["img"]["name"]) {
+            if (!$covername = $this->coverImageUpload()) {
 
-        if ($covername = $this->coverImageUpload()) {
+                return false;
+            }
             $this->con->execute('UPDATE book_store SET cover_image_path="' . $covername . '" WHERE book_id="' . $bookId . '"');
             $coverImage = true;
+            /*             * * end cover image upload * * */
         }
-        /*         * * end cover image upload * * */
+        return true;
     }
 
     function coverImageUpload() {
@@ -218,26 +243,15 @@ class book {
         return $this->filename;
     }
 
-    function bookUpload($bookName) {
+    function bookUpload() {
 
         if ($_FILES["zip_file"]["name"]) {
             $filename = $_FILES["zip_file"]["name"];
             $source = $_FILES["zip_file"]["tmp_name"];
             $type = $_FILES["zip_file"]["type"];
 
-            $name = explode(".", $filename);
-            $accepted_types = array('application/zip', 'application/x-zip-compressed', 'multipart/x-zip', 'application/x-compressed');
-            $okay = false;
-            foreach ($accepted_types as $mime_type) {
-                if ($mime_type == $type) {
-                    $okay = true;
-                    break;
-                }
-            }
-            if (!$okay) {
-                return false;
-            }
 
+            $name = explode(".", $filename);
             $continue = strtolower($name[1]) == 'zip' ? true : false;
             if (!$continue) {
                 $myMsg = "Please upload a valid .zip file.";
@@ -249,8 +263,8 @@ class book {
 //            $filenoext = basename($filename, '.zip');
 //            $filenoext = basename($filenoext, '.ZIP');
 
-            $myFileName = str_replace(' ', '_', $bookName);
-            $myDir = $path . $myFileName; // target directory
+            $myFileName = str_replace(' ', '', $filename);
+            $myDir = $path . date('ymdHms')."_".$myFileName; // target directory
             $myFile = $path . $filename; // target zip file
 
 

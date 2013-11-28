@@ -1,116 +1,75 @@
 <?php
 
-class process {
+class admin {
 
-    public function process() {
+    public function admin() {
         $this->read = new read();
         $this->con = new DB();
         $this->er = new errormsg();
         $this->qu = new query();
         $this->en = new Encryption();
-       
     }
 
-    public function sessionCheck() {
-        if ($this->session->logedin)
-            return true;
-        return false;
-    }
+    public function activateUser($userId) {
+        if ($userId) {
+            $qry = "UPDATE users SET status='A' WHERE user_id='" . $userId . "'"; //User activate
+            if ($this->con->execute($qry)) {//if success
+                $cur = date('Y-m-d H:i:s');
+                $settings = $this->getBookSheduleSettings();
+                $daysPerRound = 7;
+                if ($settings) {
+                    $daysPerRound = $settings->days_for_round;
+                }
 
-    public function redirect($url) {
-        echo '<meta http-equiv="refresh" content="0;url=' . $url . '">';
-        exit;
-    }
-
-    public function craeteSession($sessionName, $value=true) {
-        if (isset($_SESSION[$sessionName])) {
-            unset($_SESSION[$sessionName]);
-        }
-        $_SESSION[$sessionName] = $value;
-    }
-
-    public function checkSession() {
-        if (isset($_SESSION['adv']) || isset($_SESSION['adt'])) {
-            return true;
-        }
-        return false;
-    }
-
-    public function getSession($sessionName) {
-        if (!isset($_SESSION[$sessionName]) && empty($_SESSION[$sessionName])) {
-            return false;
-        }
-        return $_SESSION[$sessionName];
-    }
-
-    public function unsetSession($sessionName) {
-        if (!isset($_SESSION[$sessionName])) {
-            return false;
-        }
-        unset($_SESSION[$sessionName]);
-        return true;
-    }
-
-    public function login() {
-        if (!$data = $this->qu->getFormPost()) {
-            return false;
-        }
-        $adt = $this->con->queryUniqueObject("SELECT * FROM account WHERE del_ad=0 AND user_name='" . $data['user_name'] . "' AND password='" . $this->en->encode($data['password']) . "'");
-        if (!$adt) {
-            $this->er->createerror("Invalid username or password", 1);
-            return false;
-        }
-        if ($adt == "db_error") {
-
-            return false;
-        }
-
-
-
-        $this->unsetSession("adv");
-        $this->unsetSession("adt");
-        $this->unsetSession("admin");
-        $this->unsetSession("loginusername");
-
-        if ($adt->account_type == 1) {
-            $this->craeteSession("admin", true);
-            $this->craeteSession("adid", $adt->account_id);
-            $this->craeteSession("loginusername", $this->con->queryUniqueValue("SELECT first_name FROM account WHERE account_id='" . $adt->account_id . "'"));
-            $this->redirect("../manager/index.php");
-        }
-        if ($adt->account_type == 2) {
-            if (!$this->con->queryUniqueValue("SELECT account_id FROM adviewer_register WHERE ispay=1 AND account_id='" . $adt->account_id . "'")) {
-                $this->er->createerror("Your account not activated", 1);
-                return false;
+                $qry2 = "UPDATE book_read_shedule SET shedule_starting='" . $cur . "',shedule_ending='" . date('Y-m-d H:i:s', strtotime($cur . ' + ' . $daysPerRound . ' day')) . "',active_shedule='1' WHERE user_id='" . $userId . "'"; //User deactivate
+                if ($this->con->execute($qry2)) {
+                    $this->er->createerror("User activated!", 0);
+                    return true;
+                }
+                return true;
             }
-            if ($adt->isblock == 1) {
-                $this->er->createerror("Your account temprely blocked!. Please contact panora admin furthermore detail", 1);
-                return false;
-            }
-            
-           
-            $this->con->execute("UPDATE account SET log_session='".session_id()."' WHERE account_id='" . $adt->account_id . "' ");
-            $this->craeteSession("adv", true);
-            $this->craeteSession("advac", $adt->account_id);
-            $this->craeteSession("loginusername", $this->con->queryUniqueValue("SELECT first_name FROM account WHERE account_id='" . $adt->account_id . "'"));
-            $this->redirect("../members/dashbord.php");
-        }
-        if ($adt->account_type == 3) {
-            if ($adt->isblock == 1) {
-                $this->er->createerror("Your account temprely blocked!. Please contact panora admin furthermore detail", 1);
-                return false;
-            }
-            $this->craeteSession("adt", true);
-            $this->craeteSession("adtac", $adt->account_id);
-            $this->craeteSession("loginusername", $this->con->queryUniqueValue("SELECT first_name FROM account WHERE account_id='" . $adt->account_id . "'"));
-            $this->redirect("../advertiser/dashbord.php");
-        } else {
-            $this->er->createerror("Application errror(process.class.php-line:74)", 1);
             return false;
         }
     }
 
-    
+    public function deactivateUser($userId) {
+        if ($userId) {
+            $qry = "UPDATE users SET status='I' WHERE user_id='" . $userId . "'"; //User deactivate
+            if ($this->con->execute($qry)) {//if success
+                $qry2 = "UPDATE book_read_shedule SET shedule_starting='',shedule_ending='',active_shedule='0' WHERE user_id='" . $userId . "'"; //User deactivate
+                if ($this->con->execute($qry2)) {
+                    $this->er->createerror("User deactivated!", 0);
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    public function confirmUser($userId) {
+        if ($userId) {
+            $qry = "UPDATE users SET status='A',confirm='Y',last_subscription_date='" . date('Y-m-d H:i:s') . "' WHERE user_id='" . $userId . "'"; //User deactivate
+            if ($this->con->execute($qry)) {//if success
+                $this->er->createerror("User confirmed!", 0);
+                $settings = $this->getBookSheduleSettings();
+                $daysPerRound = 7;
+                if ($settings) {
+                    $daysPerRound = $settings->days_for_round;
+                }
+                $sheduleQry = "INSERT INTO book_read_shedule(user_id,shedule_starting,shedule_ending,active_shedule) VALUES('" . $userId . "','" . date('Y-m-d H:i:s') . "','" . date('Y-m-d H:i:s', strtotime($cur . ' + ' . $daysPerRound . ' day')) . "',1)";
+                $this->con->execute($sheduleQry);
+                return true;
+            }
+            return false;
+        }
+    }
+
+    public function getBookSheduleSettings() {
+        $qry
+                = "SELECT * FROM book_shedule_settings";
+        $settings = $this->con->queryUniqueObject($qry);
+        return ($settings ? $settings : false);
+    }
 
 }
 

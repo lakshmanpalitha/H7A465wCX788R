@@ -50,68 +50,6 @@ class process {
         unset($_SESSION[$sessionName]);
         return true;
     }
-
-    public function login() {
-        if (!$data = $this->qu->getFormPost()) {
-            return false;
-        }
-        $adt = $this->con->queryUniqueObject("SELECT * FROM account WHERE del_ad=0 AND user_name='" . $data['user_name'] . "' AND password='" . $this->en->encode($data['password']) . "'");
-        if (!$adt) {
-            $this->er->createerror("Invalid username or password", 1);
-            return false;
-        }
-        if ($adt == "db_error") {
-
-            return false;
-        }
-
-
-
-        $this->unsetSession("adv");
-        $this->unsetSession("adt");
-        $this->unsetSession("admin");
-        $this->unsetSession("loginusername");
-
-        if ($adt->account_type == 1) {
-            $this->craeteSession("admin", true);
-            $this->craeteSession("adid", $adt->account_id);
-            $this->craeteSession("loginusername", $this->con->queryUniqueValue("SELECT first_name FROM account WHERE account_id='" . $adt->account_id . "'"));
-            $this->redirect("../manager/index.php");
-        }
-        if ($adt->account_type == 2) {
-            if (!$this->con->queryUniqueValue("SELECT account_id FROM adviewer_register WHERE ispay=1 AND account_id='" . $adt->account_id . "'")) {
-                $this->er->createerror("Your account not activated", 1);
-                return false;
-            }
-            if ($adt->isblock == 1) {
-                $this->er->createerror("Your account temprely blocked!. Please contact panora admin furthermore detail", 1);
-                return false;
-            }
-            
-           
-            $this->con->execute("UPDATE account SET log_session='".session_id()."' WHERE account_id='" . $adt->account_id . "' ");
-            $this->craeteSession("adv", true);
-            $this->craeteSession("advac", $adt->account_id);
-            $this->craeteSession("loginusername", $this->con->queryUniqueValue("SELECT first_name FROM account WHERE account_id='" . $adt->account_id . "'"));
-            $this->redirect("../members/dashbord.php");
-        }
-        if ($adt->account_type == 3) {
-            if ($adt->isblock == 1) {
-                $this->er->createerror("Your account temprely blocked!. Please contact panora admin furthermore detail", 1);
-                return false;
-            }
-            $this->craeteSession("adt", true);
-            $this->craeteSession("adtac", $adt->account_id);
-            $this->craeteSession("loginusername", $this->con->queryUniqueValue("SELECT first_name FROM account WHERE account_id='" . $adt->account_id . "'"));
-            $this->redirect("../advertiser/dashbord.php");
-        } else {
-            $this->er->createerror("Application errror(process.class.php-line:74)", 1);
-            return false;
-        }
-    }
-
-    
-
 }
 
 ?>
