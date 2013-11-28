@@ -133,6 +133,7 @@ if ($read->get("userReg", "POST")) {
 
                         <div class="form-group">
                             <div class="col-sm-offset-3 col-sm-9">
+                                <input type="hidden" name="fields_req[register_date]" value="<?php echo date('Y-m-d H:i:s') ?>" />
                                 <button type="submit" name="userReg" value="userReg" class="btn btn-primary btn-lg">Register</button>
                                 <input type="hidden" name="checkSubmit" value="TRUE"/>
                             </div>
