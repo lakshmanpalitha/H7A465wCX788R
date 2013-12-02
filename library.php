@@ -51,12 +51,13 @@ if ($query) {
                     ?>
                     <div class="row">
                         <div class="col-md-3"> <a href="portfolio-item.html"><img class="img-responsive" src="<?php echo ($bk->cover_image_path ? $IMAGE_PATH . "original/" . $bk->cover_image_path : "http://placehold.it/200x250") ?>" width="200" height="250"></a> </div>
-                                                                                  <div class="col-md-9">
-                                                                                  <h4><strong>Title : <?php echo $bk->book_name_or_publication ?></strong></h4>
-                                <p><strong>Isbn:</strong> <?php echo $bk->isbn ?></p>
-                                <p><strong>Auther:</strong> <?php echo $bk->author_or_translater ?></p>
-                                <p><strong>Dicription:</strong><?php echo $bk->book_description ?></p>
-                                <a class="btn btn-primary" href="">View More Details&nbsp;&nbsp;<i class="fa fa-angle-right"></i></a> <a class="btn btn-primary" href="">Read Book &nbsp;&nbsp;<i class="fa glyphicon-headphones"></i></a> </div>
+                        <div class="col-md-9">
+                            <h4><strong>Title : <?php echo $bk->book_name_or_publication ?></strong></h4>
+                            <p><strong>Isbn:</strong> <?php echo $bk->isbn ?></p>
+                            <p><strong>Auther:</strong> <?php echo $bk->author_or_translater ?></p>
+                            <p><strong>Dicription:</strong><?php echo $bk->book_description ?></p>
+                            <a class="btn btn-primary" href="">View More Details&nbsp;&nbsp;<i class="fa fa-angle-right"></i></a> 
+                            <?php if ($pr->getSession('login') == $en->encode('TRUE')) { ?><a class="btn btn-primary" href="">Read Book &nbsp;&nbsp;<i class="fa glyphicon-headphones"></i></a> </div><?php } ?>
                     </div>
                     <hr>
                     <?php
